@@ -1,4 +1,3 @@
-import { ftruncate } from "fs";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
@@ -15,7 +14,7 @@ export class Task {
     @Column() 
     description:string;
 
-    @Column({nullable:true})
+    @Column({default:true})
     isActive:boolean;
 
     @Column({nullable : true}) 
