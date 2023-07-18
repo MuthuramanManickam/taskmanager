@@ -1,24 +1,71 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, Req, HttpStatus, Put, NotFoundException } from '@nestjs/common';
 import { ApiTags } from "@nestjs/swagger";
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { Response } from "express";
 import { Task } from './entities/task.entity';
 
 @Controller('task')
 @ApiTags('task')
 export class TaskController {
-  constructor(private readonly taskService: TaskService) {}
+  constructor(private readonly taskService: TaskService) { }
 
   @Post('addTask')
-  create(@Body() createTaskDto: CreateTaskDto ,@Req() req:Request , @Res() res:Response) {
-    const obj={
-      name:createTaskDto.name,
-      description:createTaskDto.description,
-      date:createTaskDto.date
+  async create(@Body() createTaskDto: CreateTaskDto, @Res() res: Response, @Req() req: Request) {
+    try {
+      const obj = {
+        name: createTaskDto.name,
+        description: createTaskDto.description,
+        date: createTaskDto.date
+      }
+      await this.taskService.createUserTask(obj);
+      return res.status(HttpStatus.OK).json({
+        message: "addTask successfully",
+        data: [],
+        success: true
+      })
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: "Internal server error",
+        success: false
+      })
     }
-    return this.taskService.createUserTask(obj);
   }
+  @Put('deleteTask')
+  async updateData(@Body() updateTaskDto: UpdateTaskDto, @Res() res: Response, @Req() req: Request) {
+    try {
+      const obj= await this.taskService.findById(updateTaskDto.id);
+      return res.status(HttpStatus.OK).json({
+        message: 'Item has been soft deleted',
+        success:true,
+        data: obj, // Return the updated item if needed
+      });
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: "Internal server error",
+        success: false
+      })
+    }
+  }
+
+@Get('getAllUser')
+async getAllUser( @Res() res: Response, @Req() req: Request){
+  try {
+    const get= await this.taskService.getUserData()
+    return res.status(HttpStatus.OK).json({
+      message: 'Get All the user list Successfully',
+      success:true,
+      data: get, // Return the updated item if needed
+    });
+  } catch (error) {
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      message: "Internal server error",
+      success: false
+    })
+  }
+}
+
 
   @Get()
   findAll() {

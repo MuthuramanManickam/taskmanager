@@ -5,18 +5,36 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
 import { Repository } from 'typeorm/repository/Repository';
 import { promises } from 'dns';
+import { ReturnDocument } from 'typeorm';
 
 @Injectable()
 export class TaskService {
 
   constructor(
     @InjectRepository(Task)
-    private userRepositry: Repository<Task>
+    private readonly userRepositry: Repository<Task>
   ) { }
 
   async createUserTask(taskData:any) {
     return this.userRepositry.save(taskData)
   }
+
+  async findById(id:number):Promise<any> {
+    await this.userRepositry.softDelete(id);
+    return  this.userRepositry.update(id,{isActive:false});
+  }
+
+  async getUserData(): Promise<any> {
+    return this.userRepositry.find({
+        where:{isActive:true},
+        select: ['id', 'name','date','description']
+    })
+   
+}
+
+
+
+
 
   create(createTaskDto: CreateTaskDto) {
     return 'This action adds a new task';
