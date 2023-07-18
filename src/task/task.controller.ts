@@ -66,6 +66,23 @@ async getAllUser( @Res() res: Response, @Req() req: Request){
   }
 }
 
+@Put('editTask')
+async editData(@Param('id') id: string,@Body() updateTaskDto: CreateTaskDto, @Res() res: Response, @Req() req: Request) {
+  try {
+    const obj= await this.taskService.editById(updateTaskDto.id,updateTaskDto);
+    return res.status(HttpStatus.OK).json({
+      message: 'Edit data Successfully',
+      success:true,
+      data: obj, // Return the updated item if needed
+    });
+  } catch (error) {
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      message: "Internal server error",
+      success: false
+    })
+  }
+}
+
 
   @Get()
   findAll() {
