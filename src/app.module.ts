@@ -3,11 +3,36 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-// import { SwaggerModule } from "@nestjs/swagger";
 import { TaskModule } from './task/task.module';
+import { WinstonModule } from "nest-winston";
+import { NotificationModule } from './notification/notification.module';
+import * as winston from "winston";
+import 'winston-daily-rotate-file';
 
 @Module({
   imports: [
+    WinstonModule.forRoot({
+      level: "info",
+      format: winston.format.combine(
+      winston.format.timestamp(),
+      winston.format.json(),
+      winston.format.colorize(),
+      winston.format.errors()
+      ),
+      transports: [
+        new winston.transports.Console(),
+        new winston.transports.DailyRotateFile({
+          filename: 'dr.finstein-%DATE%.log',
+          level: "info",
+          dirname: 'logs/',
+          handleExceptions: true,
+          json: false,
+          zippedArchive: true,
+          maxSize: '50m'
+        })
+      ]
+    }),
+   
     ConfigModule.forRoot({
       envFilePath:'.env'
     }),
@@ -21,7 +46,8 @@ import { TaskModule } from './task/task.module';
       // synchronize: false,
       autoLoadEntities: true,
     }),
-    TaskModule
+    TaskModule,
+    NotificationModule
   ],
   controllers: [AppController],
   providers: [AppService],

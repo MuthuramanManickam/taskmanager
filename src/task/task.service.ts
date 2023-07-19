@@ -24,7 +24,7 @@ export class TaskService {
     return  this.userRepositry.update(id,{isActive:false});
   }
 
-  async editById(id:number,updateTaskDto:CreateTaskDto):Promise<any> {
+  async editById(id:number,updateTaskDto:UpdateTaskDto):Promise<any> {
     await this.userRepositry.update(id,updateTaskDto)
   }
 
