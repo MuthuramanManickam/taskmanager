@@ -5,9 +5,31 @@ import { IsNotEmpty, IsNumber, IsOptional, IsString, Matches } from "class-valid
 export class CreateTaskDto {
     @ApiProperty()
     @IsNotEmpty()
+    @IsString()
+    @Matches('^[a-zA-Z ]+$')
+    name: string
+
+    @ApiProperty()
+    @IsString()
+    date: Date
+
+    @ApiProperty()
+    @IsOptional()
+    @IsString()
+    description: string;
+}
+export class DeleteTaskDto {
+    @ApiProperty()
+    @IsNotEmpty()
     @IsNumber()
     id: number;
+}
 
+export class UpdatedTaskDto {
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsNumber()
+    id: number;
 
     @ApiProperty()
     @IsNotEmpty()
@@ -24,25 +46,27 @@ export class CreateTaskDto {
     @IsString()
     description: string;
 }
-export class UpdateTaskDto {
+
+export class GetTaskHistoryDto {
+
     @ApiProperty()
     @IsNotEmpty()
     @IsNumber()
-    id: number;
-
-
-    @ApiProperty()
-    @IsNotEmpty()
-    @IsString()
-    @Matches('^[a-zA-Z ]+$')
-    name: string
-
-    @ApiProperty()
-    @IsString()
-    date: Date
+    page: number;
 
     @ApiProperty()
     @IsOptional()
     @IsString()
-    description: string;
+    searchInput: string;
+
+    @ApiProperty()
+    @IsOptional()
+    @IsString()
+    sortField: string;
+
+    @ApiProperty()
+    @IsOptional()
+    @IsNumber()
+    sortOrder: number;
+
 }

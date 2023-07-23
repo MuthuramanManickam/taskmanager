@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from "@nestjs/typeorm";
-import { CreateTaskDto } from './dto/create-task.dto';
+import { CreateTaskDto, UpdatedTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
 import { Repository } from 'typeorm/repository/Repository';
@@ -15,48 +15,76 @@ export class TaskService {
     private readonly userRepositry: Repository<Task>
   ) { }
 
-  async createUserTask(taskData:any) {
+  async addUserTask(taskData:any) {
     return this.userRepositry.save(taskData)
   }
 
-  async findById(id:number):Promise<any> {
+  async deleteById(id:number):Promise<any> {
     await this.userRepositry.softDelete(id);
     return  this.userRepositry.update(id,{isActive:false});
   }
 
-  async editById(id:number,updateTaskDto:UpdateTaskDto):Promise<any> {
+  async updateById(id:number,updateTaskDto:UpdatedTaskDto):Promise<any> {
     await this.userRepositry.update(id,updateTaskDto)
   }
 
   async getUserData(): Promise<any> {
     return this.userRepositry.find({
         where:{isActive:true},
-        select: ['id', 'name','date','description']
+        select: ['id', 'name','date','description'],
     })
+    
    
+}
+
+async getTaskHistory(id:number , taskDataDetails :any):Promise<any>{
+  let {searchInput ,sortField ,sortOrder ,page } =taskDataDetails
+  const rows = 5;
+  const offset = page * rows;
+  let sortFields = ['name','date','description'];
+  let checkSort = sortFields.includes(sortField);
+  sortField =  checkSort ?sortField:'createAt';
+  sortOrder = sortOrder==1 ? 'DESC':'ASC'
+
+  if (searchInput) {
+   const  taskData = await this.userRepositry.createQueryBuilder('tm')
+    .orderBy(sortField,sortOrder)
+    .limit(rows)
+    .offset(offset)
+    .where(
+      `tm.name LIKE :searchInput ||
+      tm.date LIKE :searchInput OR
+      tm.description LIKE :searchInput`,
+      { searchInput: `%${searchInput}%`,id}
+    )
+    .getManyAndCount();
+            const [data, length] = taskData;
+            return {
+                data: data,
+                length: length
+            }
+  }
+  const taskData = await this.userRepositry.createQueryBuilder('um')
+            .orderBy(sortField, sortOrder)
+            // .where('tm.userId = :id', { id})
+            .limit(rows)
+            .offset(offset)
+            .getManyAndCount();
+        const [data, length] = taskData;
+        return {
+            data: data,
+            length: length
+        }
+}
+
+getAllTaskById(id:number){
+  console.log('id.......................',id)
+  return this.userRepositry.createQueryBuilder('byId')
+    .select(['byId.id as id','byId.name as name','byId.date as date','byId.description as description'])
+    .where('byId.id =:id',{id})
+    .getRawOne()
 }
 
 
 
-
-
-  create(createTaskDto: CreateTaskDto) {
-    return 'This action adds a new task';
-  }
-
-  findAll() {
-    return `This action returns all task`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} task`;
-  }
-
-  update(id: number, updateTaskDto: UpdateTaskDto) {
-    return `This action updates a #${id} task`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} task`;
-  }
 }
