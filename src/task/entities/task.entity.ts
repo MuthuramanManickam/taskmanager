@@ -14,6 +14,10 @@ export class Task {
     @Column()
     description: string;
 
+    // @ManyToOne(() => User , (user) => user.id)
+    // @JoinColumn({name:'userId'})
+    // userId:number;
+
     @Column({ default: true })
     isActive: boolean;
 
@@ -38,146 +42,263 @@ export class Task {
 
 }
 
-// export class LeaveType {
-//     @PrimaryGeneratedColumn()
-//     id: number;
+@Entity()
+export class LeaveType {
+    @PrimaryGeneratedColumn()
+    id: number;
 
-//     @Column()
-//     name: string;
+    @Column()
+    name: string;
 
-//     @Column({ default: true })
-//     isActive: boolean;
+    @Column({ default: true })
+    isActive: boolean;
 
-//     @Column({ nullable: true })
-//     createdBy: number;
+    @Column({ nullable: true })
+    createdBy: number;
 
-//     @CreateDateColumn()
-//     createdAt: Date;
+    @CreateDateColumn()
+    createdAt: Date;
 
-//     @Column({ nullable: true })
-//     updatedby: number;
+    @Column({ nullable: true })
+    updatedby: number;
 
-//     @UpdateDateColumn()
-//     updatedAt: Date;
+    @UpdateDateColumn()
+    updatedAt: Date;
 
-//     @Column({ nullable: true })
-//     deletedBy: number;
+    @Column({ nullable: true })
+    deletedBy: number;
 
-//     @DeleteDateColumn()
-//     deletedAt: Date;
-// }
+    @DeleteDateColumn()
+    deletedAt: Date;
+}
 
+@Entity()
+export class LeaveStatus {
 
-// export class LeaveStatus {
+    @PrimaryGeneratedColumn()
+    id: number;
 
-//     @PrimaryGeneratedColumn()
-//     id: number;
+    @Column()
+    name: string;
 
-//     @Column()
-//     name: string;
+    @Column({ default: true })
+    isActive: boolean;
 
-//     @Column({ default: true })
-//     isActive: boolean;
+    @Column({ nullable: true })
+    createdBy: number;
 
-//     @Column({ nullable: true })
-//     createdBy: number;
+    @CreateDateColumn()
+    createdAt: Date;
 
-//     @CreateDateColumn()
-//     createdAt: Date;
+    @Column({ nullable: true })
+    updatedby: number;
 
-//     @Column({ nullable: true })
-//     updatedby: number;
+    @UpdateDateColumn()
+    updatedAt: Date;
 
-//     @UpdateDateColumn()
-//     updatedAt: Date;
+    @Column({ nullable: true })
+    deletedBy: number;
 
-//     @Column({ nullable: true })
-//     deletedBy: number;
+    @DeleteDateColumn()
+    deletedAt: Date;
+}
+@Entity()
+export class LeaveEntry {
+    @PrimaryGeneratedColumn()
+    id: number;
 
-//     @DeleteDateColumn()
-//     deletedAt: Date;
-// }
+    @Column()
+    startDate: Date;
 
-// export class Leave {
-//     @PrimaryGeneratedColumn()
-//     id: number;
+    @Column()
+    endDate: Date;
 
-//     @Column()
-//     startDate: Date;
+    @Column()
+    reason: string;
 
-//     @Column()
-//     endDate: Date;
+    @ManyToOne(() => LeaveStatus, (leavestatus) => leavestatus.id)
+    @JoinColumn({ name: 'leaveStatusId' })
+    leaveStatusId: number;
 
-//     @Column()
-//     reason: string;
+    @ManyToOne(() => LeaveType, (leaveType) => leaveType.id)
+    @JoinColumn({ name: 'leaveTypeId' })
+    leaveTypeId: number;
 
-//     @ManyToOne(() => LeaveStatus, (leavestatus) => leavestatus.id)
-//     @JoinColumn({ name: 'leaveStatusId' })
-//     leaveStatusId: number;
+    @ManyToOne(() => User , (user) => user.id)
+    @JoinColumn({name:'userId'})
+    userId:number
 
-//     @ManyToOne(() => LeaveType, (leaveType) => leaveType.id)
-//     @JoinColumn({ name: 'leaveTypeId' })
-//     leaveType: number;
+    @Column({ default: false })
+    isCancel: boolean;
 
-//     @Column({ default: false })
-//     isCancel: boolean;
+    @Column({default:true})
+    isActive:boolean;
 
-//     @Column({default:true})
-//     isActive:boolean;
+    @Column({nullable : true}) 
+    createdBy:number;
 
-//     @Column({nullable : true}) 
-//     createdBy:number;
+    @CreateDateColumn() 
+    createdAt:Date;
 
-//     @CreateDateColumn() 
-//     createdAt:Date;
+    @Column({nullable:true}) 
+    updatedby:number;
 
-//     @Column({nullable:true}) 
-//     updatedby:number;
+    @UpdateDateColumn() 
+    updatedAt:Date;
 
-//     @UpdateDateColumn() 
-//     updatedAt:Date;
+    @Column({nullable:true}) 
+    deletedBy:number;
 
-//     @Column({nullable:true}) 
-//     deletedBy:number;
+    @DeleteDateColumn() 
+    deletedAt:Date;
+}
+@Entity()
+export class User{
+    @PrimaryGeneratedColumn()
+    id: number;
+    
+    @Column()
+    firstName: string;
+    
+    @Column()
+    lastName: string;
+    
+    @Column()
+    dateOfBirth: Date;
+    
+    @ManyToOne(() => Gender, gender => gender.id)
+    @JoinColumn({ name: 'genderId' })
+    genderId: number;
+    
+    @Column()
+    email: string;
+    
+    @Column()
+    phoneNumber: string;
+    
+    @Column()
+    address: string;
 
-//     @DeleteDateColumn() 
-//     deletedAt:Date;
-// }
+    @Column({default:true})
+    isActive:boolean;
 
-// export class User{
-//     @PrimaryGeneratedColumn()
-//     id:number;
+    @Column({nullable : true}) 
+    createdBy:number;
 
-//     @Column() 
-//     name:string;
+    @CreateDateColumn() 
+    createdAt:Date;
 
-//     @Column() 
-//     age:number;
+    @Column({nullable:true}) 
+    updateby:number;
 
-//     @Column() 
-//     email:number;
+    @UpdateDateColumn() 
+    updatedAt:Date;
 
-//     @Column()
-//     dateOfBirth: Date;
+    @Column({nullable:true}) 
+    deletedBy:number;
 
-//     @Column({default:true})
-//     isActive:boolean;
+    @DeleteDateColumn() 
+    deletedAt:Date;
+}
+@Entity()
+export class Roles {
 
-//     @Column({nullable : true}) 
-//     createBy:number;
+    @PrimaryGeneratedColumn()
+    id: number;
 
-//     @CreateDateColumn() 
-//     createAt:Date;
+    @Column()
+    name: string;
 
-//     @Column({nullable:true}) 
-//     updateby:number;
+    @Column({ default: true })
+    isActive: boolean;
 
-//     @UpdateDateColumn() 
-//     updateAt:Date;
+    @ManyToOne(() => User, user => user.id)
+    @JoinColumn({ name: 'createdBy' })
+    createdBy : number;
+  
+    @ManyToOne(() => User, user => user.id)
+    @JoinColumn({ name: 'updatedBy' })
+    updatedBy : number;
 
-//     @Column({nullable:true}) 
-//     deleteBy:number;
+    @ManyToOne(() => User, user => user.id)
+    @JoinColumn({ name: 'deletedBy' })
+    deletedBy : number;
+  
+    @DeleteDateColumn()
+    deletedAt: Date;
+  
+    @CreateDateColumn()
+    createdAt: Date;
+  
+    @UpdateDateColumn()
+    updatedAt: Date;
+}
+@Entity()
+export class UserRoleMapping{
+    @PrimaryGeneratedColumn()
+    id:number;
 
-//     @DeleteDateColumn() 
-//     deleteAt:Date;
-// }
+    @ManyToOne(() => Roles ,(roles) => roles.id)
+    @JoinColumn({name:'roleId'})
+    roleId:number;
+
+    @ManyToOne(() =>User,(user)=>user.id)
+    @JoinColumn({name:'userId'})
+    userId:number;
+
+    @Column({default:true})
+    isActive:boolean;
+
+    @Column({nullable : true}) 
+    createdBy:number;
+
+    @CreateDateColumn() 
+    createdAt:Date;
+
+    @Column({nullable:true}) 
+    updatedby:number;
+
+    @UpdateDateColumn() 
+    updatedAt:Date;
+
+    @Column({nullable:true}) 
+    deletedBy:number;
+
+    @DeleteDateColumn() 
+    deletedAt:Date;
+
+}
+
+@Entity()
+export class Gender {
+
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column()
+    name: string;
+
+    @Column({ default: true })
+    isActive: boolean;
+
+    @ManyToOne(() => User, user => user.id)
+    @JoinColumn({ name: 'createdBy' })
+    createdBy : number;
+  
+    @ManyToOne(() => User, user => user.id)
+    @JoinColumn({ name: 'updatedBy' })
+    updatedBy : number;
+
+    @ManyToOne(() => User, user => user.id)
+    @JoinColumn({ name: 'deletedBy' })
+    deletedBy : number;
+  
+    @DeleteDateColumn()
+    deletedAt: Date;
+  
+    @CreateDateColumn()
+    createdAt: Date;
+  
+    @UpdateDateColumn()
+    updatedAt: Date;
+}
