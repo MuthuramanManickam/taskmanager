@@ -43,14 +43,14 @@ async getTaskHistory(id:number , taskDataDetails :any):Promise<any>{
   const offset = page * rows;
   let sortFields = ['name','date','description'];
   let checkSort = sortFields.includes(sortField);
-  sortField =  checkSort ?sortField:'createAt';
+  sortField =  checkSort ?sortField:'createdAt';
   sortOrder = sortOrder==1 ? 'DESC':'ASC'
 
   if (searchInput) {
    const  taskData = await this.userRepositry.createQueryBuilder('tm')
     .orderBy(sortField,sortOrder)
-    .limit(rows)
-    .offset(offset)
+    // .limit(rows)
+    // .offset(offset)
     .where(
       `tm.name LIKE :searchInput ||
       tm.date LIKE :searchInput OR
