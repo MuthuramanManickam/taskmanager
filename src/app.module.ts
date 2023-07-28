@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TaskModule } from './task/task.module';
 import { WinstonModule } from "nest-winston";
 import { NotificationModule } from './notification/notification.module';
+import { TaskmanagerModule } from './taskmanager/taskmanager.module';
 import * as winston from "winston";
 import 'winston-daily-rotate-file';
 
@@ -47,7 +48,8 @@ import 'winston-daily-rotate-file';
       autoLoadEntities: true,
     }),
     TaskModule,
-    NotificationModule
+    NotificationModule,
+    TaskmanagerModule
   ],
   controllers: [AppController],
   providers: [AppService],
