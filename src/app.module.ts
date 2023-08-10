@@ -9,6 +9,7 @@ import { NotificationModule } from './notification/notification.module';
 import { TaskmanagerModule } from './taskmanager/taskmanager.module';
 import * as winston from "winston";
 import 'winston-daily-rotate-file';
+import { MulterModule } from "@nestjs/platform-express";
 
 @Module({
   imports: [
@@ -49,7 +50,10 @@ import 'winston-daily-rotate-file';
     }),
     TaskModule,
     NotificationModule,
-    TaskmanagerModule
+    TaskmanagerModule,
+    MulterModule.register({
+      dest:'./uploads',
+    })
   ],
   controllers: [AppController],
   providers: [AppService],

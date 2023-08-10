@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from "@nestjs/typeorm";
-import { CreateTaskDto, UpdatedTaskDto } from './dto/create-task.dto';
+import { CreateTaskDto, UpdatedTaskDto, UploadFile } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
 import { Repository } from 'typeorm/repository/Repository';
 import { promises } from 'dns';
 import { ReturnDocument } from 'typeorm';
+import { async } from 'rxjs';
+import sharp from 'sharp';
 
 @Injectable()
 export class TaskService {
@@ -15,6 +17,17 @@ export class TaskService {
     private readonly userRepositry: Repository<Task>
   ) { }
 
+  // async save(input:string, output:string){
+  //   try {
+  //     const thumbnailBuffer = await sharp(input)
+  //       .resize(200, 200)
+  //       .toBuffer();
+
+  //     await sharp(thumbnailBuffer).toFile(output);
+  //   } catch (error) {
+  //     throw new Error('Failed to create thumbnail');
+  //   }
+  // }
   async addUserTask(taskData:any) {
     return this.userRepositry.save(taskData)
   }
@@ -33,8 +46,8 @@ export class TaskService {
         where:{isActive:true},
         select: ['id', 'name','date','description'],
     })
-    
-   
+  
+  
 }
 
 async getTaskHistory(id:number , taskDataDetails :any):Promise<any>{

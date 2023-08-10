@@ -2,6 +2,10 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsNumber, IsOptional, IsString, Matches } from "class-validator";
 
 
+export class UploadFile{
+    @IsNotEmpty()
+    file: Express.Multer.File;
+}
 export class CreateTaskDto {
     @ApiProperty()
     @IsNotEmpty()

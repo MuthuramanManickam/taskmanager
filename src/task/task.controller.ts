@@ -1,16 +1,88 @@
-import { Controller, Get, Post, Body, Param, Delete, Res, Req, HttpStatus, Put, Inject } from '@nestjs/common';
-import { ApiTags } from "@nestjs/swagger";
+import { Controller, Get, Post, Body, Param, Delete, Res, Req, HttpStatus, Put, Inject, UploadedFile, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import { ApiTags ,ApiConsumes ,ApiBody} from "@nestjs/swagger";
 import { TaskService } from './task.service';
-import { CreateTaskDto, GetTaskHistoryDto, UpdatedTaskDto } from './dto/create-task.dto';
+import { CreateTaskDto, GetTaskHistoryDto, UpdatedTaskDto, UploadFile } from './dto/create-task.dto';
 import { Response } from "express";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Logger } from "winston";
 import { log } from 'console';
-
+import { ExpressAdapter, FileInterceptor } from '@nestjs/platform-express';
+import * as multer from 'multer';
+import { diskStorage } from 'multer';
+import { extname, join } from 'path';
+import { share, shareReplay } from 'rxjs';
+import sharp from 'sharp';
 @Controller('task')
 @ApiTags('task')
 export class TaskController {
   constructor(@Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger, private readonly taskService: TaskService) { }
+  
+@Post('Upload')
+@UseInterceptors(FileInterceptor('file',{storage: diskStorage({destination: 'files',filename: (req, file, cb) => {
+      const name =file.originalname.split(".")[0];
+      console.log(file.originalname,'original');
+      console.log('fill',file);
+      console.log('name',name);
+      const fileExtension =file.originalname.split(".")[1];
+      console.log('fileEx',fileExtension);
+      const newFileName = name.split(" ").join("_")+("_")+Date.now()+"."+fileExtension;
+      console.log(newFileName,'newFileName');
+      cb(null, newFileName);
+        },
+      }),
+    }))
+  
+@ApiConsumes('multipart/form-data')
+@ApiBody({
+  description:'Uploaded file',
+  type:UploadFile,
+})
+ async uploadFiles(@Body() Body:UploadFile,@UploadedFiles() file){
+  console.log(file,'filesss');
+  
+  
+ }
+ 
+ 
+ 
+  // @Post('local')
+  // @UseInterceptors(
+  //   FileInterceptor('file', {storage: diskStorage({destination: './public/img',filename: (req, file, cb) => {
+  //     const name =file.originalname.split(".")[0];
+  //     console.log('name',name);
+      
+  //     const fileExtension =file.originalname.split(".")[1];
+  //     const newFileName = name.split(" ").join("_")+("_")+Date.now()+"."+fileExtension;
+  //     cb(null, newFileName);
+  //       },
+  //     }),
+  //   }),
+  // )
+  // async save(@UploadedFile() file: Express.Multer.File, @Body() body: UploadFile, @Req() req: Request, @Res() res: Response) {
+  //   console.log(file, 'fileeee');
+  //   // try {
+  //   //   const thumbnailFilename = file.filename.replace(/\.[^/.]+$/, '');
+  //   //   const thumbnailPath = `${thumbnailFilename}`;
+
+  //   //   this.taskService.save(file.path, thumbnailPath)
+  //   //   return res.status(HttpStatus.OK).json({
+  //   //     statusCode: 200,
+  //   //     success:true,
+  //   //     data: file.path,
+  //   //   })
+  //   // } catch (error) {
+  //   //   this.logger.info(` ${TaskController.name} | addTask() | RequestId: ?  | Error in / addTask() | ${error.stack} | `)
+
+  //   //   return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+  //   //     message: "Internal server error",
+  //   //     success: false
+  //   //   })
+  //   // }
+
+    
+  // }
+
+
 
   @Post('addTask')
   async addTask(@Body() createTaskDto: CreateTaskDto, @Res() res: Response, @Req() req: Request) {
@@ -159,8 +231,8 @@ export class TaskController {
       })
     }
   }
-}
 
+}
 
 
 
