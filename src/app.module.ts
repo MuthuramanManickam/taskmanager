@@ -55,6 +55,7 @@ import { MulterModule } from "@nestjs/platform-express";
       dest:'./uploads',
     })
   ],
+
   controllers: [AppController],
   providers: [AppService],
 })
