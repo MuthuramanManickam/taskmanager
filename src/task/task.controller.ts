@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Param, Delete, Res, Req, HttpStatus, Put, Inject, UploadedFile, UseInterceptors, UploadedFiles } from '@nestjs/common';
-import { ApiTags ,ApiConsumes ,ApiBody} from "@nestjs/swagger";
+import { ApiTags, ApiConsumes, ApiBody } from "@nestjs/swagger";
 import { TaskService } from './task.service';
 import { CreateTaskDto, GetTaskHistoryDto, UpdatedTaskDto, UploadFile } from './dto/create-task.dto';
 import { Response } from "express";
@@ -12,45 +12,50 @@ import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { share, shareReplay } from 'rxjs';
 import sharp from 'sharp';
+import { promises } from 'dns';
 @Controller('task')
 @ApiTags('task')
 export class TaskController {
   constructor(@Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger, private readonly taskService: TaskService) { }
-  
-@Post('Upload')
-@UseInterceptors(FileInterceptor('file',{storage: diskStorage({destination: 'files',filename: (req, file, cb) => {
-      const name =file.originalname.split(".")[0];
-      console.log(file.originalname,'original');
-      console.log('fill',file);
-      console.log('name',name);
-      const fileExtension =file.originalname.split(".")[1];
-      console.log('fileEx',fileExtension);
-      const newFileName = name.split(" ").join("_")+("_")+Date.now()+"."+fileExtension;
-      console.log(newFileName,'newFileName');
-      cb(null, newFileName);
-        },
-      }),
-    }))
-  
-@ApiConsumes('multipart/form-data')
-@ApiBody({
-  description:'Uploaded file',
-  type:UploadFile,
-})
- async uploadFiles(@Body() Body:UploadFile,@UploadedFiles() file){
-  console.log(file,'filesss');
-  
-  
- }
- 
- 
- 
+
+  @Post('Upload')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Uploaded file',
+    type: UploadFile,
+  })
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination: 'files', filename: (req, file, cb) => {
+        const name = file.originalname.split(".")[0];
+        console.log(file,'filleee');
+        
+        console.log(file.originalname, 'original');
+        console.log('fill', file);
+        console.log('name', name);
+        const fileExtension = file.originalname.split(".")[1];
+        console.log('fileEx', fileExtension);
+        const newFileName = name.split(" ").join("_") + ("_") + Date.now() + "." + fileExtension;
+        console.log(newFileName, 'newFileName');
+        cb(null, newFileName);
+      },
+    }),
+  }))
+
+
+
+  async uploadFiles(@Body() Body: UploadFile, @UploadedFiles() file) {
+ console.log(file, 'filesss');
+}
+
+
+
   // @Post('local')
   // @UseInterceptors(
   //   FileInterceptor('file', {storage: diskStorage({destination: './public/img',filename: (req, file, cb) => {
   //     const name =file.originalname.split(".")[0];
   //     console.log('name',name);
-      
+
   //     const fileExtension =file.originalname.split(".")[1];
   //     const newFileName = name.split(" ").join("_")+("_")+Date.now()+"."+fileExtension;
   //     cb(null, newFileName);
@@ -79,7 +84,7 @@ export class TaskController {
   //   //   })
   //   // }
 
-    
+
   // }
 
 
