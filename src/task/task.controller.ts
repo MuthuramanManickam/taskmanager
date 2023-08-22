@@ -1,18 +1,18 @@
-import { Controller, Get, Post, Body, Param, Delete, Res, Req, HttpStatus, Put, Inject, UploadedFile, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import { Controller, Get, Post, Param, Delete, Res, Req, HttpStatus, Put, Inject, UploadedFile, UseInterceptors, UploadedFiles, Body } from '@nestjs/common';
 import { ApiTags, ApiConsumes, ApiBody } from "@nestjs/swagger";
 import { TaskService } from './task.service';
 import { CreateTaskDto, GetTaskHistoryDto, UpdatedTaskDto, UploadFile } from './dto/create-task.dto';
 import { Response } from "express";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Logger } from "winston";
-import { log } from 'console';
 import { ExpressAdapter, FileInterceptor } from '@nestjs/platform-express';
 import * as multer from 'multer';
 import { diskStorage } from 'multer';
-import { extname, join } from 'path';
-import { share, shareReplay } from 'rxjs';
-import sharp from 'sharp';
 import { promises } from 'dns';
+import * as fs from 'fs';
+import * as path from 'path';
+const BASE_FILES_DIR = path.join(__dirname, '..','..', 'files');
+
 @Controller('task')
 @ApiTags('task')
 export class TaskController {
@@ -28,25 +28,32 @@ export class TaskController {
     storage: diskStorage({
       destination: 'files', filename: (req, file, cb) => {
         const name = file.originalname.split(".")[0];
-        console.log(file,'filleee');
-        
-        console.log(file.originalname, 'original');
-        console.log('fill', file);
-        console.log('name', name);
         const fileExtension = file.originalname.split(".")[1];
-        console.log('fileEx', fileExtension);
         const newFileName = name.split(" ").join("_") + ("_") + Date.now() + "." + fileExtension;
-        console.log(newFileName, 'newFileName');
         cb(null, newFileName);
       },
     }),
   }))
-
-
-
-  async uploadFiles(@Body() Body: UploadFile, @UploadedFiles() file) {
- console.log(file, 'filesss');
+  async uploadFile(@Body() Body: UploadFile, @UploadedFile() file : Express.Multer.File) {
 }
+
+@Get('files')
+async getAllFiles(@Res() res: Response) {
+  console.log("Path",BASE_FILES_DIR)
+  try {
+    const files = await fs.promises.readdir(BASE_FILES_DIR);
+      res.json(files);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching files' });
+  }
+}
+
+  @Get('file/:filename')
+  async getFile(@Param('filename') filename: string, @Res() res: Response) {
+    const filePath = path.join(BASE_FILES_DIR, filename);
+    console.log(filePath, 'filepath');
+    res.sendFile(filePath);
+  }
 
 
 
@@ -236,6 +243,30 @@ export class TaskController {
       })
     }
   }
+  @Post('getTaskHistoryTable')
+  async getTable(@Body() data:CreateTaskDto ,@Req() req: Request, @Res() res: Response ) {
+    const UserId = 1
+    try {
+      this.logger.info(`${TaskController.name} | getTaskHistory() | RequestId : ? | ${UserId} | Successfully entered / getTaskHistory | `);
+
+      const taskHistory = await this.taskService.getTabel(data)
+      console.log(taskHistory,'taskHistory');
+      
+      this.logger.info(`${TaskController.name} | getTaskHistory() - getTaskHistory() | RequestId : ? | ${UserId} | getTaskHistory Successfully  | `);
+      return res.status(HttpStatus.OK).json({
+        message: "Fetched Task history successfully",
+        data: taskHistory,
+        success: true
+      })
+    } catch (error) {
+      this.logger.error(`${TaskController.name} | getTaskHistory() | ${UserId} | RequestId : ? | Error in /getTaskHistory | ${error.stack} |`);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: "Internal server error",
+        success: false
+      })
+    }
+  }
+  
 
 }
 

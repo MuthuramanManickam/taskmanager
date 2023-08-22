@@ -46,8 +46,9 @@ export class TaskService {
         where:{isActive:true},
         select: ['id', 'name','date','description'],
     })
-  
-  
+}
+async getTabel(data:any){
+  return this.userRepositry.find(data)
 }
 
 async getTaskHistory(id:number , taskDataDetails :any):Promise<any>{
