@@ -4,7 +4,7 @@ import { IsNotEmpty, IsNumber, IsOptional, IsString, Matches } from "class-valid
 
 export class UploadFile{
     @IsNotEmpty()
-    file: Express.Multer.File;
+    file: File;
 }
 export class CreateTaskDto {
     @ApiProperty()

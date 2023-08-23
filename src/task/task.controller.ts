@@ -35,27 +35,35 @@ export class TaskController {
     }),
   }))
   async uploadFile(@Body() Body: UploadFile, @UploadedFile() file : Express.Multer.File) {
-}
-
-@Get('files')
-async getAllFiles(@Res() res: Response) {
-  console.log("Path",BASE_FILES_DIR)
-  try {
-    const files = await fs.promises.readdir(BASE_FILES_DIR);
-      res.json(files);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching files' });
   }
-}
+  
+  @Get('files')
+  async getAllFiles(@Res() res: Response ,@Req() req:Request) {
+    const userId = req?.['task']?.['id']
+    try {
+      this.logger.info(` ${TaskController.name} | getAllFiles() | RequestId: ? | ${userId} | Succesfully entered / getAllFiles | `)
+      const files = await fs.promises.readdir(BASE_FILES_DIR);
+      this.logger.info(` ${TaskController.name} | getAllFiles() -reddir() | RequestId: ? | ${userId} | Succesfully entered / getAllFiles | `)
+      res.json(files);
+      return res.status(HttpStatus.OK).json({
+        message: "getAllFiles  successfully",
+        success: true,
+        data:files
+      })
+    } catch (error) {
+      this.logger.info(` ${TaskController.name} | getAllFiles() | RequestId: ? | ${userId} | Error in / getAllFiles() | ${error.stack} | `)
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message:"InternalServer Error",
+        success:false
+      })
+    }
+  }
 
   @Get('file/:filename')
   async getFile(@Param('filename') filename: string, @Res() res: Response) {
     const filePath = path.join(BASE_FILES_DIR, filename);
-    console.log(filePath, 'filepath');
     res.sendFile(filePath);
   }
-
-
 
   // @Post('local')
   // @UseInterceptors(
@@ -94,8 +102,6 @@ async getAllFiles(@Res() res: Response) {
 
   // }
 
-
-
   @Post('addTask')
   async addTask(@Body() createTaskDto: CreateTaskDto, @Res() res: Response, @Req() req: Request) {
     const userId = req?.['task']?.['id']
@@ -108,15 +114,12 @@ async getAllFiles(@Res() res: Response) {
       }
       await this.taskService.addUserTask(user);
       this.logger.info(` ${TaskController.name} | addTask() - addUserTask() | RequestId: ? | ${userId} | addTask Succesfully | `)
-
       return res.status(HttpStatus.OK).json({
         message: "addTask successfully",
         success: true
       })
-
     } catch (error) {
       this.logger.info(` ${TaskController.name} | addTask() | RequestId: ? | ${userId} | Error in / addTask() | ${error.stack} | `)
-
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: "Internal server error",
         success: false
@@ -132,16 +135,13 @@ async getAllFiles(@Res() res: Response) {
 
       const taskObj = await this.taskService.deleteById(id);
       this.logger.info(`${TaskController.name} | deleteTask() - deleteById() | RequestId : ? | ${userId} | deleteTask Successfully | `);
-
       return res.status(HttpStatus.OK).json({
         message: 'Item has been  deleted',
         success: true,
-        data: taskObj, // Return the updated item if needed
+        data: taskObj
       });
-
     } catch (error) {
       this.logger.info(`${TaskController.name} | deleteTask() | RequestId : ? | ${userId} | Error in / deleteTask() | ${error.stack} | `);
-
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: "Internal server error",
         success: false
@@ -154,16 +154,13 @@ async getAllFiles(@Res() res: Response) {
     const userId = "User";
     try {
       this.logger.info(`${TaskController.name} | getAllUser() | RequestId : ?  | ${userId} | Successfully entered / getAllUser | `);
-
       const getUser = await this.taskService.getUserData()
       this.logger.info(`${TaskController.name} | getAllUser() - getUserData() | RequestId : ?  | ${userId} | getalluser fetched Successfully  | `);
-
-      return res.status(HttpStatus.OK).json({
+       return res.status(HttpStatus.OK).json({
         message: 'Get All the user list Successfully',
         success: true,
         data: getUser,
       });
-
     } catch (error) {
       this.logger.info(`${TaskController.name} | getAllUser() | RequestId : ? | ${userId}  | Error in / getAllUser() | ${error.stack} | `);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
@@ -178,10 +175,7 @@ async getAllFiles(@Res() res: Response) {
     const userId = 1
     try {
       this.logger.info(`${TaskController.name} | getAllTaskById() | RequestId : ?  | ${userId} | Successfully entered / getAllTaskById | `);
-
       const getUserById = await this.taskService.getAllTaskById(id)
-      console.log('....iddd', getUserById);
-
       this.logger.info(`${TaskController.name} | getAllTaskById() -getAllTaskById() | RequestId : ?  | ${userId} | getAllTaskById  Successfully | `);
       return res.status(HttpStatus.OK).json({
         message: " getAllTaskById fetched data successfully",
@@ -199,14 +193,11 @@ async getAllFiles(@Res() res: Response) {
 
   @Put('updateTask/:id')
   async updateTask(@Param('id') id: number, @Body() updateTaskDto: UpdatedTaskDto, @Res() res: Response, @Req() req: Request) {
-
     const userId = id
     try {
       this.logger.info(`${TaskController.name} | updateTask() | RequestId : ? | ${userId} | Successfully entered / updateTask | `);
-
       const updateTask = await this.taskService.updateById(id, updateTaskDto);
       this.logger.info(`${TaskController.name} | updateTask() - updateById() | RequestId : ? | ${userId} | updateTask Successfully | `);
-
       return res.status(HttpStatus.OK).json({
         message: 'updateTask data Successfully',
         success: true,
@@ -214,7 +205,6 @@ async getAllFiles(@Res() res: Response) {
       });
     } catch (error) {
       this.logger.info(`${TaskController.name} | updateTask() | RequestId : ? | ${userId} | Error in / updateTask() | ${error.stack} |`);
-
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: "Internal server error",
         success: false
@@ -227,7 +217,6 @@ async getAllFiles(@Res() res: Response) {
     const UserId = 1
     try {
       this.logger.info(`${TaskController.name} | getTaskHistory() | RequestId : ? | ${UserId} | Successfully entered / getTaskHistory | `);
-
       const taskHistory = await this.taskService.getTaskHistory(UserId, data)
       this.logger.info(`${TaskController.name} | getTaskHistory() - getTaskHistory() | RequestId : ? | ${UserId} | getTaskHistory Successfully  | `);
       return res.status(HttpStatus.OK).json({
@@ -248,10 +237,7 @@ async getAllFiles(@Res() res: Response) {
     const UserId = 1
     try {
       this.logger.info(`${TaskController.name} | getTaskHistory() | RequestId : ? | ${UserId} | Successfully entered / getTaskHistory | `);
-
       const taskHistory = await this.taskService.getTabel(data)
-      console.log(taskHistory,'taskHistory');
-      
       this.logger.info(`${TaskController.name} | getTaskHistory() - getTaskHistory() | RequestId : ? | ${UserId} | getTaskHistory Successfully  | `);
       return res.status(HttpStatus.OK).json({
         message: "Fetched Task history successfully",
