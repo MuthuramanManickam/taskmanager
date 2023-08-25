@@ -10,6 +10,7 @@ import { TaskmanagerModule } from './taskmanager/taskmanager.module';
 import * as winston from "winston";
 import 'winston-daily-rotate-file';
 import { MulterModule } from "@nestjs/platform-express";
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { MulterModule } from "@nestjs/platform-express";
       transports: [
         new winston.transports.Console(),
         new winston.transports.DailyRotateFile({
-          filename: 'dr.finstein-%DATE%.log',
+          filename: 'task-manager-%DATE%.log',
           level: "info",
           dirname: 'logs/',
           handleExceptions: true,
@@ -45,7 +46,7 @@ import { MulterModule } from "@nestjs/platform-express";
       username: process.env.DATABASE_USER,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-      // synchronize: true,
+      synchronize: true,
       autoLoadEntities: true,
     }),
     TaskModule,
@@ -53,7 +54,8 @@ import { MulterModule } from "@nestjs/platform-express";
     TaskmanagerModule,
     MulterModule.register({
       dest:'./uploads',
-    })
+    }),
+    UserModule
   ],
 
   controllers: [AppController],

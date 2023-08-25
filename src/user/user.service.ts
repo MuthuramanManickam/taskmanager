@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Not, Repository } from 'typeorm';
 import { Task } from 'src/task/entities/task.entity';
+import { threadId } from 'worker_threads';
 
 @Injectable()
 export class UserService {
@@ -18,6 +19,11 @@ export class UserService {
     return await this.userRepositry.save(data);
   }
 
+  async checkUser(email:CreateUserDto["email"]) {
+    return await this.userRepositry.createQueryBuilder('u')
+      .where(`u.email =:email and u.isActive =:isActive and u.deletedAt is null`,{email , isActive : true })
+      .getRawOne();
+  }
   async getUsers(){
     return await this.userRepositry.find({
         where:{isActive:true},
@@ -26,7 +32,12 @@ export class UserService {
   }
 
   async updateUser(id:number,updateTaskDto:UpdateUserDto){
-    return await this.userRepositry.update(id,updateTaskDto)
+    const isDeleted = await this.userRepositry.createQueryBuilder('u')
+      .where(`u.isActive = :isActive and u.deletedAt is null and u.id = :id`,{isActive : true ,id})
+      .getOne()
+      if (isDeleted !=null) {
+        return await this.userRepositry.update(id,updateTaskDto)
+      }
   }
 
   async deleteById(id:number){

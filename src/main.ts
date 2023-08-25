@@ -13,13 +13,6 @@ async function bootstrap() {
     .setVersion('1.0').addTag('CRUD').build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
-
-  
-  // app.useGlobalInterceptors()
-  // app.post('/upload', upload.single('file'), (req, res) => {
-  //   res.send('File uploaded successfully');
-  // });
-  // app.useGlobalInterceptors(new FileInterceptor('file'));
   await app.listen(3000);
 }
 bootstrap();

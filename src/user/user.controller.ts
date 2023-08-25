@@ -12,26 +12,35 @@ import { ApiTags } from '@nestjs/swagger';
 @Controller('user')
 @ApiTags("User")
 export class UserController {
-  constructor(@Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger ,private readonly userService: UserService) {}
+  constructor(@Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger, private readonly userService: UserService) { }
 
   @Post('addNewUser')
-  async addNewUser(@Body() createUserDto: CreateUserDto , @Res() res:Response , @Req() req:Request) {
+  async addNewUser(@Body() createUserDto: CreateUserDto, @Res() res: Response, @Req() req: Request) {
     const userId = 1; // req['user']['id']
     try {
       this.logger.info(`${UserController.name} | addNewUser() | RequestId : ?  | ${userId} | Successfully entered /addNewUser `);
       createUserDto['createdBy'] = userId;
-      await this.userService.addNewUser(createUserDto);
-      this.logger.info(`${UserController.name} | addNewUser() - addNewUser() | RequestId : ?  | ${userId} | User has been added successfull`);
-      return res.status(HttpStatus.OK).json({
-        message: "User has been added successfull",
-        success: true
-      })
+      const checkUser = await this.userService.checkUser(createUserDto.email);
+      if (checkUser && Object.keys(checkUser)) {
+        return res.status(HttpStatus.OK).json({
+          message: "User Already exist", // User Already Exist
+          success: false
+        })
+      } else {
+        await this.userService.addNewUser(createUserDto);
+        this.logger.info(`${UserController.name} | addNewUser() - addNewUser() | RequestId : ?  | ${userId} | User has been added successfull`);
+        return res.status(HttpStatus.OK).json({
+          message: "User has been added successfull",
+          success: true
+        })
+      }
+
     } catch (error) {
       this.logger.info(`${UserController.name} | addNewUser() | RequestId : ? | ${userId}  | Error in /addNewUser | ${error.stack} `);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: "Internal server error",
         success: false
-      }) 
+      })
     }
   }
 
@@ -42,19 +51,18 @@ export class UserController {
       this.logger.info(`${UserController.name} | getUsers() | RequestId : ?  | ${userId} | Successfully entered /getUsers `);
       const users = await this.userService.getUsers()
       this.logger.info(`${UserController.name} | getUsers() - getUsers() | RequestId : ?  | ${userId} | getUsers fetched Successfully  `);
-      
       if (users?.length > 0) {
         this.logger.info(`${UserController.name} | getUsers() | RequestId : ?  | ${userId} | GetAll User information retrieved successfully `);
         return res.status(HttpStatus.OK).json({
-        message: 'GetAll User information retrieved successfully',
-        success: true,
-        data: users,
-      });
-    }
-    return res.status(HttpStatus.OK).json({
-      message :'User not found',
-      success:false
-    })
+          message: 'GetAll User information retrieved successfully',
+          success: true,
+          data: users,
+        });
+      }
+      return res.status(HttpStatus.OK).json({
+        message: 'User not found',
+        success: false
+      })
     } catch (error) {
       this.logger.info(`${UserController.name} | getUsers() | RequestId : ? | ${userId}  | Error in /getUsers | ${error.stack} `);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
@@ -64,23 +72,23 @@ export class UserController {
     }
   }
   @Get('getUserById/:id')
-  async getUserById(@Param('id') id:number , @Res() res: Response, @Req() req: Request) {
+  async getUserById(@Param('id') id: number, @Res() res: Response, @Req() req: Request) {
     const userId = 1;
     try {
       this.logger.info(`${UserController.name} | getUserById() | RequestId : ?  | ${userId} | Successfully entered /getUserById `);
       const user = await this.userService.getUserById(id)
       this.logger.info(`${UserController.name} | getUserById() - getUserById() | RequestId : ?  | ${userId} | getUserById fetched Successfully  `);
       if (user && Object.keys(user).length > 0) {
-          this.logger.info(`${UserController.name} | getUserById() | RequestId : ?  | ${userId} | User information retrieved successfully `);
-          return res.status(HttpStatus.OK).json({
+        this.logger.info(`${UserController.name} | getUserById() | RequestId : ?  | ${userId} | User information retrieved successfully `);
+        return res.status(HttpStatus.OK).json({
           message: 'User information retrieved successfully',
           success: true,
           data: user,
         });
       }
       return res.status(HttpStatus.OK).json({
-        message :'User not found',
-        success:false
+        message: 'User not found',
+        success: false
       })
     } catch (error) {
       this.logger.info(`${UserController.name} | getUserById() | RequestId : ? | ${userId}  | Error in /getUserById | ${error.stack} `);
@@ -95,12 +103,19 @@ export class UserController {
     const userId = 1;
     try {
       this.logger.info(`${UserController.name} | updateUser() | RequestId : ? | ${userId} | Successfully entered /updateUser `);
-      const user = await this.userService.updateUser(id,updateTaskDto);
+      const user = await this.userService.updateUser(id, updateTaskDto);
       this.logger.info(`${UserController.name} | updateUser() - updateById() | RequestId : ? | ${userId} | updateUser Successfully `);
+      if (user?.affected) {
+        return res.status(HttpStatus.OK).json({
+          message: 'User updated successfully',
+          success: true,
+          data: user,
+        });
+      }
+      this.logger.info(`${UserController.name} | updateUser() - updateById() | RequestId : ? | ${userId} | No data found for the id ${id} `);
       return res.status(HttpStatus.OK).json({
-        message: 'User updated successfully',
-        success: true,
-        data: user,
+        message: 'No data found',
+        success: false,
       });
     } catch (error) {
       this.logger.info(`${UserController.name} | updateUser() | RequestId : ? | ${userId} | Error in / updateUser() | ${error.stack}`);
@@ -117,19 +132,19 @@ export class UserController {
     try {
       this.logger.info(`${UserController.name} | deleteUser() | RequestId : ?  | ${userId} | Successfully entered /deleteUser/:id `);
       const users = await this.userService.deleteById(id);
-      if(users?.affected) {
+      if (users?.affected) {
         this.logger.info(`${UserController.name} | deleteUser() - deleteById() | RequestId : ? | ${userId} | deleteUser Successfully  `);
         return res.status(HttpStatus.OK).json({
-            message: 'User has been deleted Successfully' ,
-            success: true,
-            data: users
-          });
+          message: 'User has been deleted Successfully',
+          success: true,
+          data: users
+        });
       }
-        this.logger.info(`${UserController.name} | deleteUser() - deleteById() | RequestId : ? | ${userId} | No data found for the id ${id} `);
-        return res.status(HttpStatus.OK).json({
-            message: 'No data found' ,
-            success: false,
-          });
+      this.logger.info(`${UserController.name} | deleteUser() - deleteById() | RequestId : ? | ${userId} | No data found for the id ${id} `);
+      return res.status(HttpStatus.OK).json({
+        message: 'No data found',
+        success: false,
+      });
     } catch (error) {
       this.logger.info(`${UserController.name} | deleteUser() | RequestId : ? | ${userId} | Error in / deleteUser() | ${error.stack} `);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
