@@ -10,7 +10,7 @@ export class User {
     name: string;
     
     @Column()
-    dateOfBirth: Date;
+    dateOfBirth: string;
     
     @Column()
     gender: string;

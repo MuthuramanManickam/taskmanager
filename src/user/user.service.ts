@@ -56,6 +56,80 @@ export class UserService {
     .where ('u.id =:id and u.isActive = :isActive',{id, isActive : true})
     .getRawOne()
   }
+
+  async approvalDetails(statusId:number){
+    return this.userRepositry.createQueryBuilder('u')
+    .select([
+      'c.customerName', 
+      'ca.categoryName',
+      's.statusName',
+      'u.userName',
+      
+    ])
+    // e.cusrtomer =>> pass >> Customer class
+    .leftJoin('e.customer','c','c.id = e.customerId') 
+    .leftJoin('e.category','ca','ca.id = e.categoryId')
+    .leftJoin('e.status','s','s.id = e.statusId')
+    .leftJoin('e.user','u','u.id = e.userId')
+    .leftJoin('e.project','p','p.id = e.projectId')
+    .where('s.id =:id ',{id:statusId})
+    .getRawMany()
+  }
+
+  approvelUserCount(id:number){
+    return this.userRepositry.createQueryBuilder('e')
+    .select()
+    .leftJoin('customer','c','c.id = e.customerId') 
+    .leftJoin('category','ca','ca.id = e.categoryId')
+    .leftJoin('status','s','s.id = e.statusId')
+    .leftJoin('user','u','u.id = e.userId')
+    .leftJoin('project','p','p.id = e.projectId')
+    .where('u.id = :userId',{userId :id})
+    .getCount()
+  }
+
+  approvelUserList(id:number){
+    return this.userRepositry.createQueryBuilder('e')
+    .select([
+      'e.amount',
+      'e.expenseType',
+      'e.id',
+      'c.category',
+      'e.nextApprover',
+      's.statusName',
+      'u.userName as submitter' ,
+      'e.updatedAt'
+    ])
+    .leftJoin('customer','c','c.id = e.customerId') 
+    .leftJoin('category','ca','ca.id = e.categoryId')
+    .leftJoin('status','s','s.id = e.statusId')
+    .leftJoin('user','u','u.id = e.userId')
+    .leftJoin('project','p','p.id = e.projectId')
+    .where('u.id = :userId',{userId :id})
+    .getRawMany()
+  }
+  
+  approvelUserById(id:number , statusId:number){
+    return this.userRepositry.createQueryBuilder('e')
+    .select([
+      'e.amount',
+      'e.expenseType',
+      'e.id',
+      'c.category',
+      'e.nextApprover',
+      's.statusName',
+      'u.userName as submitter' ,
+      'e.updatedAt'
+    ])
+    .leftJoin('customer','c','c.id = e.customerId') 
+    .leftJoin('category','ca','ca.id = e.categoryId')
+    .leftJoin('status','s','s.id = e.statusId')
+    .leftJoin('user','u','u.id = e.userId')
+    .leftJoin('project','p','p.id = e.projectId')
+    .where('u.id = :userId and s.id = :statusId',{userId :id,statusId :statusId})
+    .getRawMany()
+  }
+
   findAll() {
     return `This action returns all user`;
   }

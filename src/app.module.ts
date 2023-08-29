@@ -11,9 +11,26 @@ import * as winston from "winston";
 import 'winston-daily-rotate-file';
 import { MulterModule } from "@nestjs/platform-express";
 import { UserModule } from './user/user.module';
+import { RegisterModule } from './register/register.module';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { join } from 'path';
+import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
 
 @Module({
-  imports: [
+  imports: [   
+    ConfigModule.forRoot({
+      envFilePath:'.env'
+    }),
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: process.env.DATABASE_HOST,
+      port: 3306,
+      username: process.env.DATABASE_USER,
+      password: process.env.DATABASE_PASSWORD,
+      database: process.env.DATABASE_NAME,
+      // synchronize: true,
+      autoLoadEntities: true,
+    }),
     WinstonModule.forRoot({
       level: "info",
       format: winston.format.combine(
@@ -35,27 +52,36 @@ import { UserModule } from './user/user.module';
         })
       ]
     }),
-   
-    ConfigModule.forRoot({
-      envFilePath:'.env'
-    }),
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: process.env.DATABASE_HOST,
-      port: 3306,
-      username: process.env.DATABASE_USER,
-      password: process.env.DATABASE_PASSWORD,
-      database: process.env.DATABASE_NAME,
-      synchronize: true,
-      autoLoadEntities: true,
-    }),
-    TaskModule,
-    NotificationModule,
-    TaskmanagerModule,
     MulterModule.register({
       dest:'./uploads',
     }),
-    UserModule
+    MailerModule.forRoot({
+      transport: {
+        host: 'sandbox.smtp.mailtrap.io',
+        port: 2525,
+        secure: false,
+        auth: {
+          user: process.env.MAIL_USER,
+          pass: process.env.MAIL_PASSWORD,
+        },
+      },
+      defaults: {
+        from: '"No Reply" <admin@finstein.ai>',
+      },
+      preview: false,
+      template: {
+        dir: join(__dirname, "mail-service", 'template'),
+        adapter: new HandlebarsAdapter(),
+        options: {
+          strict: true,
+        },
+      },
+    }),
+    UserModule,
+    RegisterModule ,
+    TaskModule,
+    NotificationModule,
+    TaskmanagerModule,
   ],
 
   controllers: [AppController],
