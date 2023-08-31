@@ -1,9 +1,9 @@
 export enum EmailTemplate { 
-    VERIFY_EMAIL = "./verification",
+    ADD_EMAIL = "./adduser",
     // FORGOT_PASSWORD = "./forgot-password"
 }
 
 export enum EmailSubjects { 
-    VERIFY_EMAIL = "Verify your email",
+    ADD_EMAIL = "Add User",
     // FORGOT_PASSWORD = "Reset your password"
 }
