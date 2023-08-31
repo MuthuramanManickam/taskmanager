@@ -10,87 +10,100 @@ import { MailService } from 'src/mail-service/mail/mail.service';
 import * as moment from 'moment';
 import { Logger, error } from "winston";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
+import { generatePrimeSync } from 'crypto';
+import Mail from 'nodemailer/lib/mailer';
+import { User } from 'src/user/entities/user.entity';
+import { log } from 'console';
 
 
 
 @Controller('register')
 @ApiTags('Registrations')
 export class RegisterController {
-  constructor( @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,private readonly registerService: RegisterService ,private   mailService: MailService,private helper: HelperService) {}
+  constructor(@Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger, private readonly registerService: RegisterService, private mailService: MailService, private helper: HelperService) { }
 
   @Post('addUser')
-  async addUser(@Body() data:SignupDto ,@Req() req :Request ,@Res() res :Response){
+  async addUser(@Body() dataArray: SignupDto[], @Req() req: Request, @Res() res: Response) {
+    const userId = req['user']?.['id'] || 1;
     try {
-      this.logger.info(`${RegisterController.name} | addUser() | ${data.email} | RequestId : ? | Succesfully entered /addUser`);
-      const isExist = await this.registerService.checkMailExist(data.email)
-      this.logger.info(`${RegisterController.name} | addUser() - checkMailExist() | ${data.email} | RequestId : ? | Check mail if exist or not`);
-      if (!isExist) {
-
-        const generatePassword = await this.helper.generatePassword()
-        // const hashPassword = await this.helper.hashPassword(generatePassword)
-        const mailOptions = {
-          mail: data.email,
-          subject: EmailSubjects.VERIFY_EMAIL,
-          template: EmailTemplate.VERIFY_EMAIL,
-          name: data.name,
-          generatePassword :generatePassword ,
-          expireTime: 5
-        }
-        const registerUser = await this.registerService.registerUser(data , generatePassword)
-        this.logger.info(`${RegisterController.name} | addUser() - registerUser() | ${data.email} | RequestId : ? | Succesfully  register user`);
-        const mailSend = await this.mailService.sendMail(mailOptions)
-        if (mailSend) {
-          this.logger.info(`${RegisterController.name} | addUser() - sendMail() | ${data.email} | RequestId : ? | Succesfully mail sent`);
-          return res.status(HttpStatus.OK).json({
-            message: "Successfully registered",
-            data: registerUser,
-            success: true
+      this.logger.info(`${RegisterController.name} | addUser() | RequestId : ? | Succesfully entered /addUser`);
+      let successResponses = [];
+      let errorResponses = [];
+      const emailArray = dataArray.map(e => e.email);
+      if (!emailArray.length) {
+        this.logger.info(`${RegisterController.name} | addUser() | ${userId} | RequestId : ? | Username and/or email cannot be empty /addUser`);
+        return // no data found
+      }
+      const isMailExist = await this.registerService.checkUser(userId);
+      this.logger.info(`${RegisterController.name} | addUser() - checkUser() | ${userId} | RequestId : ? | Check user /addUser`);
+      const existMails = isMailExist.map(e => e.email);
+      if (isMailExist.length) {  //isVerified true
+        this.logger.info(`${RegisterController.name} | addUser() - checkUser()| ${userId} | RequestId : ? | Email already exist with verified`);
+        existMails.forEach((email) => {
+          errorResponses.push({
+            email: email,
+            message: "Something Went Wrong"
           })
+        })
+      }
+      const validUsers = dataArray.filter(user => !existMails.includes(user.email));
+      const validUserObjects = validUsers.map(user => ({ name: user.name, email: user.email }));
+      if (validUserObjects.length) {
+       const values = await this.registerService.registerUser(validUserObjects, userId)
+        this.logger.info(`${RegisterController.name} | addUser() - registerUser()| ${userId} | RequestId : ? | User registered successfully /addUser`);
+        values.forEach((e) => {
+          successResponses.push({
+            email: e.email,
+            name: e.name,
+            password: e.temporaryPassword,
+            message: "Register successfully"
+          })
+        })
+        if (values.length) {
+          for (const response of successResponses) {
+            const userMailOptions = {
+              mail: response.email,
+              subject: EmailSubjects.ADD_EMAIL,
+              template: EmailTemplate.ADD_EMAIL,
+              name: response.name,
+              generatePassword: response.password,
+              expireTime: 5,
+            };
+            const mailSend = await this.mailService.sendMail(userMailOptions);
+            if (mailSend) {
+              this.logger.info(`${RegisterController.name} | addUsers() - sendMail() | ${userId} | RequestId : ? | Successfully mail sent`);
+            } else {
+              errorResponses.push({
+                email: response.email,
+                message: "Mail not sent",
+              });
+              this.logger.error(`${RegisterController.name} | addUsers() - sendMail() | ${userId} | RequestId : ? | Mail not sent`);
+            }
+          }
+
         }
-        this.logger.error(`${RegisterController.name} | addUser() - sendMail() | ${data.email} | RequestId : ? | Mail not send`);
-        return res.status(HttpStatus.FAILED_DEPENDENCY).json({
-          message: "Mail not send", 
-          success: false
-        })
       }
-      if (isExist.isVerified) {
-        this.logger.info(`${RegisterController.name} | addUser() - checkMailExist() | ${data.email} | RequestId : ? | Email already exist with verified`);
-        return res.status(HttpStatus.BAD_REQUEST).json({
-          message: "Something went wrong",
-          success: false
-        })
-      }
-      const generatePassword = await this.helper.generatePassword()
-      // const hashPassword = await this.helper.hashPassword(generatePassword)
-      const mailOptions = {
-        mail: data.email,
-        subject: EmailSubjects.VERIFY_EMAIL,
-        template: EmailTemplate.VERIFY_EMAIL,
-        name: data.name,
-        generatePassword :generatePassword ,
-        expireTime: 5
-      }
-      const updatePassword ={
-        temporaryPassword : generatePassword ,
-        createdBy : isExist.id,
-        userId : isExist.id ,
-        expiredTime :moment(new Date()).format('D/M/YYYY h:mm:ss A')
-       }
-       await this.registerService.savePassword(updatePassword);
-      this.logger.error(`${RegisterController.name} | addUser() - savePassword() | ${data.email} | RequestId : ? | Error in /addUser `);
-       return res.status(HttpStatus.OK).json({
-        message : "updateUser Successfully" ,
-        success : true
-
-       })
-
+      const successResponse =successResponses.map((e)=> {
+        delete e.password 
+        return e
+      })
+      const errorResponse = errorResponses.map((e)=>{
+        delete e.password
+        return e 
+      })
+      console.log("successs",successResponses);
+      console.log("error",errorResponses );
+      return res.status(HttpStatus.OK).json({
+        message : "Users added successfully",
+        success : true ,
+        data :{successResponse, errorResponses} 
+      })
     } catch (error) {
-      this.logger.error(`${RegisterController.name} | addUser() | ${data.email} | RequestId : ? | Error in /addUser | ${error.stack}`);
+      this.logger.error(`${RegisterController.name} | addUser() | ${userId} | RequestId : ? | Error in /addUser | ${error.stack}`);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: "Internal server error",
         success: false
       })
     }
   }
-  
 }
