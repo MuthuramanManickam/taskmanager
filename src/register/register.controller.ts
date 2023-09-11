@@ -34,7 +34,7 @@ export class RegisterController {
         this.logger.info(`${RegisterController.name} | addUser() | ${userId} | RequestId : ? | Username and/or email cannot be empty /addUser`);
         return // no data found
       }
-      const isMailExist = await this.registerService.checkUser(userId);
+      const isMailExist = await this.registerService.checkUser(emailArray);
       this.logger.info(`${RegisterController.name} | addUser() - checkUser() | ${userId} | RequestId : ? | Check user /addUser`);
       const existMails = isMailExist.map(e => e.email);
       if (isMailExist.length) {  //isVerified true
@@ -86,10 +86,6 @@ export class RegisterController {
       const successResponse =successResponses.map((e)=> {
         delete e.password 
         return e
-      })
-      const errorResponse = errorResponses.map((e)=>{
-        delete e.password
-        return e 
       })
       console.log("successs",successResponses);
       console.log("error",errorResponses );
