@@ -15,6 +15,7 @@ import { RegisterModule } from './register/register.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { join } from 'path';
 import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [   
@@ -82,6 +83,7 @@ import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handleba
     TaskModule,
     NotificationModule,
     TaskmanagerModule,
+    PaymentModule,
   ],
 
   controllers: [AppController],
